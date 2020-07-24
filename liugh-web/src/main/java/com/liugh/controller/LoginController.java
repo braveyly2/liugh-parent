@@ -51,9 +51,8 @@ public class LoginController {
     //添加用户的按钮权限
     @RequiresPermissions("user:add")
     public ResponseModel register(
-            @ValidationParam("username,roleName")@RequestBody JSONObject requestJson,
-            @CurrentUser User user) throws Exception{
-        requestJson.put("createUser", user.getUserNo());
+            @ValidationParam("username,roleName")@RequestBody JSONObject requestJson) throws Exception{
+        //requestJson.put("createUser", user.getUserNo());
         return ResponseHelper.succeed(userService.insertUserByAdmin(requestJson));
     }
 
@@ -83,7 +82,7 @@ public class LoginController {
     @PostMapping("/register")
     @Log(action="register",modelName= "Login",description="注册接口")
     @Pass
-    public ResponseModel<User> register(@ValidationParam("username,password,rePassword,mobile,captcha,job")
+    public ResponseModel<User> registerEnd(@ValidationParam("username,password,rePassword,mobile,captcha,job")
                                        @RequestBody JSONObject requestJson)throws Exception {
         return ResponseHelper.succeed( userService.checkAndRegisterUser(requestJson));
     }

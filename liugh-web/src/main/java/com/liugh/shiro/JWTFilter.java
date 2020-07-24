@@ -7,16 +7,23 @@ import com.liugh.base.Constant;
 import com.liugh.config.ResponseHelper;
 import com.liugh.entity.User;
 import com.liugh.service.IUserService;
+import com.liugh.service.impl.UserServiceImpl;
 import com.liugh.util.ComUtil;
+import com.liugh.util.JWTUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.protocol.HTTP;
 import org.apache.shiro.SecurityUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.web.filter.authc.BasicHttpAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
+import org.springframework.web.context.support.XmlWebApplicationContext;
 
+import javax.servlet.ServletContext;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
@@ -31,7 +38,9 @@ import java.io.*;
 @Slf4j
 public class JWTFilter extends BasicHttpAuthenticationFilter {
 
+    @Autowired
     private IUserService userService;
+
     /**
      * 判断用户是否想要登入。
      * 检测header里面是否包含Authorization字段即可
@@ -87,9 +96,22 @@ public class JWTFilter extends BasicHttpAuthenticationFilter {
 
     private void setUserBean(ServletRequest request, ServletResponse response, JWTToken token) {
         Object principal = SecurityUtils.getSubject().getPrincipal();
-        if(principal instanceof User ){
-            User userBean =(User)principal;
-            request.setAttribute("currentUser", userBean);
+        if(null != principal){
+            String userNo = JWTUtil.getUserNo((String)principal);
+            if (userNo == null) {
+                throw new AuthenticationException("token invalid");
+            }
+            //setUserLogServiceImpl(new UserServiceImpl());
+            //ServletContext sc = ((HttpServletRequest) request).getSession().getServletContext();
+            //WebApplicationContext cxt = (WebApplicationContext) WebApplicationContextUtils.getWebApplicationContext(sc);
+
+            //UserServiceImpl userServiceImpl = null;
+            //if(cxt != null && cxt.getBean("userServiceImpl") != null && userServiceImpl == null)
+            //    userServiceImpl = (UserServiceImpl) cxt.getBean("userServiceImpl");
+            if(principal instanceof User) {
+                User userBean = userService.selectById(userNo);
+                request.setAttribute("currentUser", userBean);
+            }
         }
     }
 
